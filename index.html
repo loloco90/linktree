@@ -1,0 +1,222 @@
+
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700&family=Fredoka+One&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  #lt-root {
+    background: #000; min-height: 100vh;
+    font-family: 'Comic Neue', 'Comic Sans MS', cursive;
+    position: relative; overflow: hidden;
+    display: flex; align-items: center; justify-content: center;
+    padding: 40px 20px;
+  }
+  canvas#matrix {
+    position: absolute; top: 0; left: 0;
+    width: 100%; height: 100%;
+    opacity: 0.18; pointer-events: none;
+  }
+  .lt-card {
+    position: relative; z-index: 10;
+    background: rgba(0,0,0,0.82);
+    border: 4px solid #7a6a00;
+    box-shadow: 6px 6px 0 #6b0000, 10px 10px 0 #00006b;
+    border-radius: 6px; padding: 32px 36px 28px;
+    max-width: 420px; width: 100%; text-align: center;
+  }
+  .lt-rainbow-bar {
+    height: 10px;
+    background: repeating-linear-gradient(90deg,
+      #880000 0px,#880000 16px,
+      #885500 16px,#885500 32px,
+      #887700 32px,#887700 48px,
+      #005500 48px,#005500 64px,
+      #000077 64px,#000077 80px,
+      #440077 80px,#440077 96px);
+    margin-bottom: 20px; border-radius: 2px;
+  }
+  .lt-avatar {
+    width: 80px; height: 80px; border-radius: 50%;
+    border: 4px solid #7a6a00; box-shadow: 3px 3px 0 #6b0000;
+    background: linear-gradient(135deg, #000060, #440077);
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 12px; font-size: 36px;
+  }
+  .lt-name {
+    font-family: 'Fredoka One', cursive; font-size: 2em;
+    color: #ccaa00; text-shadow: 2px 2px 0 #6b0000, 4px 4px 0 #00006b;
+    margin-bottom: 4px;
+  }
+  .lt-bio { color: #888; font-size: 0.88em; margin-bottom: 20px; font-style: italic; }
+  .lt-links { display: flex; flex-direction: column; gap: 12px; }
+  .lt-btn {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 18px; border-radius: 4px; border: 3px solid;
+    font-family: 'Comic Neue', cursive; font-weight: 700; font-size: 1em;
+    cursor: pointer; text-decoration: none; transition: transform 0.1s;
+    width: 100%;
+  }
+  .lt-btn:hover { transform: scale(1.04) translateY(-2px); }
+  .lt-btn:active { transform: scale(0.97) translateY(1px); }
+  .lt-btn-icon { font-size: 1.3em; width: 28px; text-align: center; flex-shrink: 0; display: inline-block; }
+  .lt-btn-label { flex: 1; text-align: left; }
+  .lt-btn-arrow { font-size: 0.9em; opacity: 0.5; }
+  .btn-instagram { background: #110020; border-color: #882288; color: #cc88cc; box-shadow: 3px 3px 0 #440033; }
+  .btn-github    { background: #0d0d0d; border-color: #888888; color: #cccccc; box-shadow: 3px 3px 0 #333; }
+  .btn-linkedin  { background: #001128; border-color: #006699; color: #66aacc; box-shadow: 3px 3px 0 #002244; }
+  .btn-projects  { background: #111000; border-color: #7a6a00; color: #ccaa00; box-shadow: 3px 3px 0 #443300; }
+
+  /* ANIMAÇÕES DOS ÍCONES */
+  @keyframes bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-6px)} }
+  @keyframes floatIcon { 0%,100%{transform:translateY(0) rotate(-5deg)} 50%{transform:translateY(-5px) rotate(5deg)} }
+  @keyframes wave { 0%,100%{transform:rotate(-10deg)} 50%{transform:rotate(10deg)} }
+  @keyframes pulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.2)} }
+  @keyframes spin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+
+  .icon-bounce  { animation: bounce 1.4s ease-in-out infinite; }
+  .icon-float   { animation: floatIcon 2s ease-in-out infinite; }
+  .icon-wave    { animation: wave 1.2s ease-in-out infinite; }
+  .icon-pulse   { animation: pulse 1.6s ease-in-out infinite; }
+  .icon-spin    { animation: spin 4s linear infinite; }
+
+  /* OVERLAY */
+  .ig-overlay {
+    display: none; position: fixed; inset: 0; z-index: 100;
+    background: rgba(0,0,0,0.75);
+    align-items: center; justify-content: center;
+  }
+  .ig-overlay.active { display: flex; }
+  .ig-popup {
+    background: #000; border: 4px solid #882288;
+    box-shadow: 6px 6px 0 #440077, 10px 10px 0 #6b0000;
+    border-radius: 6px; padding: 28px 30px;
+    max-width: 400px; width: 92%;
+    text-align: center; position: relative;
+    animation: popIn 0.2s ease;
+  }
+  @keyframes popIn { from { transform: scale(0.85); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+  .ig-popup-bar {
+    height: 8px;
+    background: repeating-linear-gradient(90deg,#882288 0,#882288 16px,#440077 16px,#440077 32px,#880044 32px,#880044 48px);
+    margin-bottom: 18px; border-radius: 2px;
+  }
+  .ig-popup h3 { font-family: 'Fredoka One', cursive; color: #cc88cc; font-size: 1.4em; text-shadow: 2px 2px 0 #440077; margin-bottom: 6px; }
+  .ig-popup p { color: #888; font-size: 0.82em; margin-bottom: 18px; font-style: italic; }
+  .ig-options { display: flex; flex-direction: column; gap: 10px; }
+  .ig-opt {
+    display: flex; align-items: center; gap: 10px;
+    padding: 11px 16px; border-radius: 4px; border: 3px solid;
+    font-family: 'Comic Neue', cursive; font-weight: 700; font-size: 0.95em;
+    cursor: pointer; text-decoration: none; transition: transform 0.1s;
+    white-space: nowrap;
+  }
+  .ig-opt:hover { transform: scale(1.04); }
+  .ig-opt-pessoal { background: #110020; border-color: #882288; color: #cc88cc; box-shadow: 3px 3px 0 #440033; }
+  .ig-opt-prof    { background: #0a0015; border-color: #662266; color: #bb88ee; box-shadow: 3px 3px 0 #330055; }
+  .ig-opt-icon { font-size: 1.2em; flex-shrink: 0; }
+  .ig-close {
+    position: absolute; top: 8px; right: 12px;
+    background: none; border: none; color: #882288;
+    font-size: 1.3em; cursor: pointer; font-weight: 700;
+    font-family: 'Comic Neue', cursive;
+  }
+  .ig-close:hover { color: #fff; }
+
+  .lt-ticker { margin-top: 20px; border-top: 3px solid #7a6a00; padding-top: 8px; overflow: hidden; }
+  .lt-ticker-inner {
+    display: inline-block; white-space: nowrap;
+    animation: ltmarquee 14s linear infinite;
+    color: #ccaa00; font-size: 0.8em; font-weight: 700; letter-spacing: 1px;
+  }
+  @keyframes ltmarquee { from { transform: translateX(100%); } to { transform: translateX(-100%); } }
+  .lt-stars { position: absolute; top: 8px; right: 10px; font-size: 1.1em; animation: ltblink 1.4s infinite; color: #ccaa00; }
+  @keyframes ltblink { 0%,100%{opacity:1} 50%{opacity:0.2} }
+
+  @media (max-width: 480px) {
+    .lt-card { padding: 24px 18px 22px; }
+    .lt-name { font-size: 1.6em; }
+    .lt-btn { font-size: 0.93em; padding: 11px 14px; }
+    .ig-popup { padding: 22px 16px; }
+    .ig-opt { font-size: 0.88em; padding: 10px 12px; }
+  }
+</style>
+
+<div id="lt-root">
+  <canvas id="matrix"></canvas>
+  <div class="lt-card">
+    <div class="lt-rainbow-bar"></div>
+    <div class="lt-stars">✦ ✦ ✦</div>
+    <div class="lt-avatar">👾</div>
+    <div class="lt-name">Danilo</div>
+    <div class="lt-bio">professor • nerd desde 1999</div>
+    <div class="lt-links">
+      <button class="lt-btn btn-instagram" onclick="document.getElementById('igOverlay').classList.add('active')">
+        <span class="lt-btn-icon icon-bounce">📸</span>
+        <span class="lt-btn-label">Instagram</span>
+        <span class="lt-btn-arrow">▶</span>
+      </button>
+      <a href="https://github.com/loloco90" target="_blank" class="lt-btn btn-github">
+        <span class="lt-btn-icon icon-spin">⌨</span>
+        <span class="lt-btn-label">GitHub</span>
+        <span class="lt-btn-arrow">▶</span>
+      </a>
+      <a href="https://br.linkedin.com/in/umdanilo" target="_blank" class="lt-btn btn-linkedin">
+        <span class="lt-btn-icon icon-wave">💼</span>
+        <span class="lt-btn-label">LinkedIn</span>
+        <span class="lt-btn-arrow">▶</span>
+      </a>
+      <a href="#" class="lt-btn btn-projects">
+        <span class="lt-btn-icon icon-float">🚀</span>
+        <span class="lt-btn-label">Meus Projetos</span>
+        <span class="lt-btn-arrow">▶</span>
+      </a>
+    </div>
+    <div class="lt-ticker">
+      <span class="lt-ticker-inner">★ bem-vindo ao meu cantinho da internet ★ clica em algo aí ★ feito com ♥ e nostalgia ★ &nbsp;&nbsp;&nbsp;</span>
+    </div>
+  </div>
+</div>
+
+<div class="ig-overlay" id="igOverlay" onclick="if(event.target===this)this.classList.remove('active')">
+  <div class="ig-popup">
+    <button class="ig-close" onclick="document.getElementById('igOverlay').classList.remove('active')">✕</button>
+    <div class="ig-popup-bar"></div>
+    <h3>📸 Instagram</h3>
+    <p>qual você quer visitar?</p>
+    <div class="ig-options">
+      <a href="https://www.instagram.com/um.danilo/" target="_blank" class="ig-opt ig-opt-pessoal">
+        <span class="ig-opt-icon">🙂</span>
+        <span>@um.danilo — pessoal</span>
+      </a>
+      <a href="https://www.instagram.com/prof_danilo_/" target="_blank" class="ig-opt ig-opt-prof">
+        <span class="ig-opt-icon">🎓</span>
+        <span>@prof_danilo_ — profissional</span>
+      </a>
+    </div>
+  </div>
+</div>
+
+<script>
+  const canvas = document.getElementById('matrix');
+  const ctx = canvas.getContext('2d');
+  const chars = 'アイウエオカキクケコサシスセソタチツテトナニヌネノ0123456789ABCDEF@#$%&<>/\\|';
+  function resize() { canvas.width = canvas.offsetWidth; canvas.height = canvas.offsetHeight; }
+  resize();
+  window.addEventListener('resize', resize);
+  const fontSize = 14;
+  let columns = Math.floor(canvas.width / fontSize);
+  let drops = Array(columns).fill(1);
+  function draw() {
+    ctx.fillStyle = 'rgba(0,0,0,0.05)';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    columns = Math.floor(canvas.width / fontSize);
+    if (drops.length < columns) drops.push(...Array(columns - drops.length).fill(1));
+    ctx.font = fontSize + 'px monospace';
+    for (let i = 0; i < columns; i++) {
+      const char = chars[Math.floor(Math.random() * chars.length)];
+      ctx.fillStyle = i % 3 === 0 ? '#FFD700' : i % 3 === 1 ? '#FF00FF' : '#00FFFF';
+      ctx.fillText(char, i * fontSize, drops[i] * fontSize);
+      if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) drops[i] = 0;
+      drops[i]++;
+    }
+  }
+  setInterval(draw, 50);
+</script>
